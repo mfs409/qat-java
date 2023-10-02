@@ -17,7 +17,7 @@
 /**
  * The fieldID for java.nio.ByteBuffer/position
  */
-static jfieldID nio_bytebuffer_position_id;
+_Thread_local static jfieldID nio_bytebuffer_position_id;
 
 /**
  * Setups a QAT session for DEFLATE.
