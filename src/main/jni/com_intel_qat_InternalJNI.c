@@ -30,8 +30,7 @@ static int setup_deflate_session(QzSession_T *qz_session, int level,
   QzSessionParamsDeflate_T deflate_params;
 
   int status = qzGetDefaultsDeflate(&deflate_params);
-  if (status != QZ_OK)
-    return status;
+  if (status != QZ_OK) return status;
 
   deflate_params.data_fmt = QZ_DEFLATE_GZIP_EXT;
   deflate_params.common_params.comp_lvl = level;
@@ -53,8 +52,7 @@ static int setup_lz4_session(QzSession_T *qz_session, int level,
   QzSessionParamsLZ4_T lz4_params;
 
   int status = qzGetDefaultsLZ4(&lz4_params);
-  if (status != QZ_OK)
-    return status;
+  if (status != QZ_OK) return status;
 
   lz4_params.common_params.polling_mode = POLLING_MODE;
   lz4_params.common_params.comp_lvl = level;
@@ -548,8 +546,7 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_InternalJNI_teardown(JNIEnv *env,
   (void)obj;
 
   QzSession_T *qz_session = (QzSession_T *)sess;
-  if (!qz_session)
-    return QZ_OK;
+  if (!qz_session) return QZ_OK;
 
   int status = qzTeardownSession(qz_session);
   if (status != QZ_OK) {
