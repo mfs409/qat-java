@@ -188,8 +188,9 @@ public class DummyBackend {
 
     int decompressedSize = -1;
     if (algorithm == Algorithm.DUMMY) {
-      decompressedSize = DummyJNI.compressByteArray(src, srcOffset, srcLen, dst, dstOffset, dstLen);
-      // InternalJNI.compressByteArray(
+      decompressedSize =
+          DummyJNI.decompressByteArray(src, srcOffset, srcLen, dst, dstOffset, dstLen);
+      // InternalJNI.decompressByteArray(
       //     session, src, srcOffset, srcLen, dst, dstOffset, dstLen, retryCount);
     } else {
       throw new IllegalArgumentException(

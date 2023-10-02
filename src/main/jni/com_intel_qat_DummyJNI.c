@@ -80,3 +80,58 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_DummyJNI_compressByteArray(
 
   return bytes_written;
 }
+
+
+/*
+ * Decompresses a byte array.
+ *
+ * Class:     com_intel_qat_InternalJNI
+ * Method:    decompressByteArray
+ * Signature: (J[BII[BIII)I
+ */
+JNIEXPORT jint JNICALL Java_com_intel_qat_DummyJNI_decompressByteArray(
+    JNIEnv *env, jobject obj, jbyteArray src_arr, jint src_pos,
+    jint src_len, jbyteArray dst_arr, jint dst_pos, jint dst_len) {
+  (void)obj;
+
+  // QzSession_T *qz_session = (QzSession_T *)sess;
+
+  unsigned char *src_ptr =
+      (unsigned char *)(*env)->GetByteArrayElements(env, src_arr, NULL);
+  unsigned char *dst_ptr =
+      (unsigned char *)(*env)->GetByteArrayElements(env, dst_arr, NULL);
+
+  // // get the expansion ratio from the environment
+  // jclass dummy_class = (*env)->GetObjectClass(env, obj);
+  // jfieldID fid_ratio = (*env)->GetFieldID(env, dummy_class, "inverseCompressionRatio", "I");
+  // jint shrinking_ratio = (*env)-> GetIntField(env, obj, fid_ratio);
+
+  // for now just set the ratio to 2. TODO: implent arbirtrary ratios
+  int shrinking_ratio = 2;
+  fprintf(stdout, "The original data will shrink by a factor of %d\n", shrinking_ratio);
+
+  // int bytes_read = 0;
+  int bytes_written = 0;
+
+  // decompress(env, qz_session, src_ptr + src_pos, src_len, dst_ptr + dst_pos,
+  //          dst_len, &bytes_read, &bytes_written, retry_count);
+
+  for (int i = 0; i < src_len && bytes_written < dst_len; i++) {
+    dst_ptr[dst_pos + i] = src_ptr[src_pos + i];
+    bytes_written++;
+  }
+  
+  for (int j = 1; j < shrinking_ratio; j++) {
+   for (int i = 0; i < src_len && bytes_written < dst_len; i++) {
+      if(dst_ptr[dst_pos + i] != src_ptr[src_pos + j*src_len + i]){
+        bytes_written = -1;
+        //indicate some error with decompressing data (though for DUMMY, data should likely still decompress fine)
+      }
+    }
+  }
+
+  (*env)->ReleaseByteArrayElements(env, src_arr, (jbyte *)src_ptr, 0);
+  (*env)->ReleaseByteArrayElements(env, dst_arr, (jbyte *)dst_ptr, 0);
+
+  return bytes_written;
+}

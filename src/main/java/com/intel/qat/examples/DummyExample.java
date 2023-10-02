@@ -25,7 +25,7 @@ public class DummyExample {
       //   }
       //   System.out.println("that was the input bytes^^");
 
-      // replace with DummyBackend
+      // eventually test other 'compression' levels
       DummyBackend dummy = new DummyBackend();
 
       // Create a buffer with enough size for compression
@@ -44,17 +44,16 @@ public class DummyExample {
       String compressStr = new String(compressedData, 0, compressedSize);
       System.out.println("Compressed data: " + compressStr);
 
-      // TODO: implement decompression
-      //   // Decompress the bytes into a String
-      //   byte[] decompressedData = new byte[input.length];
-      //   int decompressedSize = dummy.decompress(compressedData, decompressedData);
+      // Decompress the bytes into a String
+      byte[] decompressedData = new byte[input.length];
+      int decompressedSize = dummy.decompress(compressedData, decompressedData);
 
-      //   // Release resources
-      //   qzip.end();
+      // // Release resources - Dummy Backend uses no native memory, so nothing to be released
+      // dummy.end();
 
-      //   // Convert the bytes into a String
-      //   String outputStr = new String(decompressedData, 0, decompressedSize);
-      //   System.out.println("Decompressed data: " + outputStr);
+      // Convert the bytes into a String
+      String outputStr = new String(decompressedData, 0, decompressedSize);
+      System.out.println("Decompressed data: " + outputStr);
     } catch (Exception e) {
       e.printStackTrace();
     }
