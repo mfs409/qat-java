@@ -80,7 +80,7 @@ static int setup_lz4_session(QzSession_T *qz_session, int level,
  * @param retry_count the number of compression retries before we give up.
  * @return QZ_OK (0) if successful, non-zero otherwise.
  */
-static int compress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
+static void compress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
                     unsigned int src_len, unsigned char *dst_ptr,
                     unsigned int dst_len, int *bytes_read, int *bytes_written,
                     int retry_count) {
@@ -95,13 +95,11 @@ static int compress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
 
   if (status != QZ_OK) {
     throw_exception(env, status, "Error occurred while compressing data.");
-    return status;
+    return;
   }
 
   *bytes_read = src_len;
   *bytes_written = dst_len;
-
-  return QZ_OK;
 }
 
 /**
@@ -123,7 +121,7 @@ static int compress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
  * @param retry_count the number of decompression retries before we give up.
  * @return QZ_OK (0) if successful, non-zero otherwise.
  */
-static int decompress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
+static void decompress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
                       unsigned int src_len, unsigned char *dst_ptr,
                       unsigned int dst_len, int *bytes_read, int *bytes_written,
                       int retry_count) {
@@ -137,13 +135,11 @@ static int decompress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
   }
   if (status != QZ_OK && status != QZ_BUF_ERROR && status != QZ_DATA_ERROR) {
     throw_exception(env, status, "Error occurred while decompressing data.");
-    return status;
+    return;
   }
 
   *bytes_read = src_len;
   *bytes_written = dst_len;
-
-  return QZ_OK;
 }
 
 /*
