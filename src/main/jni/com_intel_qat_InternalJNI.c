@@ -153,7 +153,7 @@ static int decompress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
  *
  * Class:     com_intel_qat_InternalJNI
  * Method:    setup
- * Signature: (Lcom/intel/qat/QatZipper;IJII)V
+ * Signature: (Lcom/intel/qat/QatZipper;III)V
  */
 JNIEXPORT void JNICALL Java_com_intel_qat_InternalJNI_setup(
     JNIEnv *env, jobject obj, jobject qat_zipper, jint sw_backup,
@@ -456,7 +456,7 @@ Java_com_intel_qat_InternalJNI_decompressDirectByteBufferSrc(
 /*
  * Class:     com_intel_qat_InternalJNI
  * Method:    compressDirectByteBufferDst
- * Signature: (J[BIILjava/nio/ByteBuffer;III)I
+ * Signature: (JLjava/nio/ByteBuffer;[BIILjava/nio/ByteBuffer;III)I
  */
 JNIEXPORT jint JNICALL
 Java_com_intel_qat_InternalJNI_compressDirectByteBufferDst(
