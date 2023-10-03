@@ -52,7 +52,7 @@ import java.nio.ReadOnlyBufferException;
  * should be called explicitly. If not, resources will stay alive until this <code>QatZipper</code>
  * becomes phantom reachable.
  */
-public class QatZipper {
+public class QatZipBackend extends ZipperBackend{
   /** The default compression level is 6. */
   public static final int DEFAULT_COMPRESS_LEVEL = 6;
 

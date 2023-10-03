@@ -1,17 +1,28 @@
 package com.intel.qat;
 
+import java.nio.ByteBuffer;
+import static com.intel.qat.QatZipper.Algorithm;
+import static com.intel.qat.QatZipper.Mode;
+
 public abstract class ZipperBackend {
 
-    //TODO: How to store all 4 of these fields?
-    public final int DEFAULT_COMPRESS_LEVEL;
+  //TODO: How to store these fields?
 
-    public final int DEFAULT_RETRY_COUNT;
+  private boolean isValid;
 
-    private boolean isValid;
+  private int retryCount;
 
-    private int retryCount;
+  //TODO: validateParams() shouldn't be in ZipperBackend. Each conrete Backend should probably have something like it though
+  /**
+   * Validates compression level and retry counts.
+   *
+   * @param algorithm the compression {@link algorithm}
+   * @param level the compression level.
+   * @param retryCount how many times to seek for a hardware resources before giving up.
+   * @return true if validation was successful, false otherwise.
+   */
+  private boolean validateParams(Algorithm algorithm, int level, int retryCount);
 
-    //TODO: do we want some absract validateParams() method?
 
    /**
    * Returns the maximum compression length for the specified source length. Use this method to
@@ -20,7 +31,7 @@ public abstract class ZipperBackend {
    * @param len the length of the source array or buffer.
    * @return the maximum compression length for the specified length.
    */
-    public abstract int maxCompressedLength(long len);
+    public abstract int maxCompressedSize(long len);
 
      /**
    * Compresses the source array and stores the result in the destination array. Returns the actual
@@ -106,10 +117,18 @@ public abstract class ZipperBackend {
   public abstract int decompress(ByteBuffer src, ByteBuffer dst);
 
     /**
-     * TODO write javadoc
+     * TODO write javadoc, how does it interact 
      */
   public abstract int teardown();
 
+
+  /**
+   * Ends the current QAT session by freeing up resources. A new session must be used after a
+   * successful call of this method.
+   *
+   * @throws QatException if QAT session cannot be gracefully ended.
+   */
+  public abstract void end() throws QatException;
 
 
 }
