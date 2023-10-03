@@ -149,6 +149,7 @@ public class ZstdBackend extends ZipperBackend {
 
   @Override
   public int decompress(ByteBuffer src, ByteBuffer dst) {
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
     if ((src == null || dst == null)
         || (src.position() == src.limit() || dst.position() == dst.limit()))
       throw new IllegalArgumentException();
