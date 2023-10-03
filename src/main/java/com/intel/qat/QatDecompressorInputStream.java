@@ -69,7 +69,7 @@ public class QatDecompressorInputStream extends FilterInputStream {
    *     failover.)
    */
   public QatDecompressorInputStream(InputStream in, int bufferSize, Mode mode) {
-    this(in, bufferSize, Algorithm.DEFLATE, mode);
+    this(in, bufferSize, Algorithm.ZSTD, mode);
   }
 
   /**

@@ -35,7 +35,7 @@ public class QatCompressorOutputStream extends FilterOutputStream {
    * @param out the output stream
    */
   public QatCompressorOutputStream(OutputStream out) {
-    this(out, DEFAULT_BUFFER_SIZE, Algorithm.DEFLATE, QatZipper.DEFAULT_COMPRESS_LEVEL, Mode.AUTO);
+    this(out, DEFAULT_BUFFER_SIZE, Algorithm.ZSTD, QatZipper.DEFAULT_COMPRESS_LEVEL, Mode.AUTO);
   }
 
   /**
@@ -46,7 +46,7 @@ public class QatCompressorOutputStream extends FilterOutputStream {
    * @param bufferSize the output buffer size
    */
   public QatCompressorOutputStream(OutputStream out, int bufferSize) {
-    this(out, bufferSize, Algorithm.DEFLATE, QatZipper.DEFAULT_COMPRESS_LEVEL, Mode.AUTO);
+    this(out, bufferSize, Algorithm.ZSTD, QatZipper.DEFAULT_COMPRESS_LEVEL, Mode.AUTO);
   }
 
   /**

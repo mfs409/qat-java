@@ -56,8 +56,8 @@ public class QatZipper {
   /** The backend wrapper */
   private ZipperBackend backend;
 
-  /** The default compression level is 6. */
-  public static final int DEFAULT_COMPRESS_LEVEL = 6;
+  /** The default compression level is 1. */
+  public static final int DEFAULT_COMPRESS_LEVEL = 1;
 
   /**
    * The default number of times QatZipper attempts to acquire hardware resources is <code>0</code>.
@@ -123,7 +123,8 @@ public class QatZipper {
   public QatZipper() {
     // backend = new QatZipBackend(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL,
     // Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    backend = null;
+    backend =
+        new ZstdBackend(Algorithm.ZSTD, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
     cleanable = cleaner.register(this, new QatCleaner(backend));
   }
 
@@ -137,7 +138,7 @@ public class QatZipper {
   public QatZipper(Mode mode) {
     // backend = new QatZipBackend(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode,
     // DEFAULT_RETRY_COUNT);
-    backend = null;
+    backend = new ZstdBackend(Algorithm.ZSTD, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
     cleanable = cleaner.register(this, new QatCleaner(backend));
   }
 
