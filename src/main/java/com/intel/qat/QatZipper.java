@@ -224,7 +224,7 @@ public class QatZipper {
    * @return the maximum compression length for the specified length.
    */
   public int maxCompressedLength(long len) {
-    return backend.maxCompressedSize(len);
+    return backend.maxCompressedLength(len);
   }
 
   /**

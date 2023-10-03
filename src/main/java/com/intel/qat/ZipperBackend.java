@@ -21,8 +21,9 @@ public abstract class ZipperBackend {
    * @param retryCount how many times to seek for a hardware resources before giving up.
    * @return true if validation was successful, false otherwise.
    */
-  private boolean validateParams(Algorithm algorithm, int level, int retryCount);
-
+  public boolean validateParams(Algorithm algorithm, int level, int retryCount) {
+    return !(retryCount < 0 || level < 1 || level > 9);
+  }
 
    /**
    * Returns the maximum compression length for the specified source length. Use this method to
@@ -31,7 +32,7 @@ public abstract class ZipperBackend {
    * @param len the length of the source array or buffer.
    * @return the maximum compression length for the specified length.
    */
-    public abstract int maxCompressedSize(long len);
+    public abstract int maxCompressedLength(long len);
 
      /**
    * Compresses the source array and stores the result in the destination array. Returns the actual
@@ -115,12 +116,6 @@ public abstract class ZipperBackend {
    * @return returns the size of the decompressed data in bytes
    */
   public abstract int decompress(ByteBuffer src, ByteBuffer dst);
-
-    /**
-     * TODO write javadoc, how does it interact 
-     */
-  public abstract int teardown();
-
 
   /**
    * Ends the current QAT session by freeing up resources. A new session must be used after a

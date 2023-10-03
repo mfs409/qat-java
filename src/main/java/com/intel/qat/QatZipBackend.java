@@ -6,7 +6,6 @@
 
 package com.intel.qat;
 
-import java.lang.ref.Cleaner;
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 
@@ -24,7 +23,7 @@ import java.nio.ReadOnlyBufferException;
  *   String inputStr = "Hello World!";
  *   byte[] input = inputStr.getBytes();
  *
- *   QatZipper qzip = new QatZipper();
+ *   QatZipBackend qzip = new QatZipBackend();
  *
  *   // Create a buffer with enough size for compression
  *   byte[] output = new byte[qzip.maxCompressedLength(input.length)];
@@ -48,16 +47,17 @@ import java.nio.ReadOnlyBufferException;
  *
  * </blockquote>
  *
- * To release QAT resources used by this <code>QatZipper</code>, the <code>end()</code> method
- * should be called explicitly. If not, resources will stay alive until this <code>QatZipper</code>
- * becomes phantom reachable.
+ * To release QAT resources used by this <code>QatZipBackend</code>, the <code>end()</code> method
+ * should be called explicitly. If not, resources will stay alive until this <code>QatZipBackend
+ * </code> becomes phantom reachable.
  */
-public class QatZipBackend extends ZipperBackend{
+public class QatZipBackend extends ZipperBackend {
   /** The default compression level is 6. */
   public static final int DEFAULT_COMPRESS_LEVEL = 6;
 
   /**
-   * The default number of times QatZipper attempts to acquire hardware resources is <code>0</code>.
+   * The default number of times QatZipBackend attempts to acquire hardware resources is <code>0
+   * </code>.
    */
   public static final int DEFAULT_RETRY_COUNT = 0;
 
@@ -65,40 +65,20 @@ public class QatZipBackend extends ZipperBackend{
 
   private int retryCount;
 
-  /** Cleaner instance associated with this object. */
-  private static Cleaner cleaner;
-
-  /** Cleaner.Cleanable instance representing QAT cleanup action. */
-  private final Cleaner.Cleanable cleanable;
-
-  static {
-    SecurityManager sm = System.getSecurityManager();
-    if (sm == null) {
-      cleaner = Cleaner.create();
-    } else {
-      java.security.PrivilegedAction<Void> pa =
-          () -> {
-            cleaner = Cleaner.create();
-            return null;
-          };
-      java.security.AccessController.doPrivileged(pa);
-    }
-  }
-
   /** A reference to a QAT session in C. */
   long session;
 
   /** The mode of execution for QAT. */
   public static enum Mode {
     /**
-     * A hardware-only execution mode. QatZipper would fail if hardware resources cannot be acquired
-     * after finite retries.
+     * A hardware-only execution mode. QatZipBackend would fail if hardware resources cannot be
+     * acquired after finite retries.
      */
     HARDWARE,
 
     /**
-     * A hardware execution mode with a software fail over. QatZipper would fail over to software
-     * execution mode if hardware resources cannot be acquired after finite retries.
+     * A hardware execution mode with a software fail over. QatZipBackend would fail over to
+     * software execution mode if hardware resources cannot be acquired after finite retries.
      */
     AUTO;
   }
@@ -113,59 +93,59 @@ public class QatZipBackend extends ZipperBackend{
   }
 
   /**
-   * Creates a new QatZipper that uses {@link Algorithm#DEFLATE}, {@link DEFAULT_COMPRESS_LEVEL},
-   * {@link Mode#HARDWARE}, and {@link DEFAULT_RETRY_COUNT}.
+   * Creates a new QatZipBackend that uses {@link Algorithm#DEFLATE}, {@link
+   * DEFAULT_COMPRESS_LEVEL}, {@link Mode#HARDWARE}, and {@link DEFAULT_RETRY_COUNT}.
    */
-  public QatZipper() {
+  public QatZipBackend() {
     this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
-   * Creates a new QatZipper with the specified execution {@link Mode}. Uses {@link
+   * Creates a new QatZipBackend with the specified execution {@link Mode}. Uses {@link
    * Algorithm#DEFLATE} compression algorithm, {@link DEFAULT_COMPRESS_LEVEL} compression level, and
    * {@link DEFAULT_RETRY_COUNT} retries.
    *
    * @param mode the {@link Mode} of QAT execution
    */
-  public QatZipper(Mode mode) {
+  public QatZipBackend(Mode mode) {
     this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
-   * Creates a new QatZipper with the specified compression {@link Algorithm}. Uses {@link
+   * Creates a new QatZipBackend with the specified compression {@link Algorithm}. Uses {@link
    * DEFAULT_COMPRESS_LEVEL} compression level, {@link Mode#HARDWARE} execution mode, and {@link
    * DEFAULT_RETRY_COUNT} retries.
    *
    * @param algorithm the compression {@link Algorithm}
    */
-  public QatZipper(Algorithm algorithm) {
+  public QatZipBackend(Algorithm algorithm) {
     this(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
-   * Creates a new QatZipper with the specified {@link Algorithm} and {@link Mode} of execution.
+   * Creates a new QatZipBackend with the specified {@link Algorithm} and {@link Mode} of execution.
    * Uses {@link DEFAULT_COMPRESS_LEVEL} compression level and {@link DEFAULT_RETRY_COUNT} retries.
    *
    * @param algorithm the compression {@link Algorithm}
    * @param mode the {@link Mode} of QAT execution
    */
-  public QatZipper(Algorithm algorithm, Mode mode) {
+  public QatZipBackend(Algorithm algorithm, Mode mode) {
     this(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
-   * Creates a new QatZipper with the specified {@link Algorithm} and compression level. Uses {@link
-   * Mode#HARDWARE} execution mode and {@link DEFAULT_RETRY_COUNT} retries.
+   * Creates a new QatZipBackend with the specified {@link Algorithm} and compression level. Uses
+   * {@link Mode#HARDWARE} execution mode and {@link DEFAULT_RETRY_COUNT} retries.
    *
    * @param algorithm the compression algorithm (deflate or LZ4).
    * @param level the compression level.
    */
-  public QatZipper(Algorithm algorithm, int level) {
+  public QatZipBackend(Algorithm algorithm, int level) {
     this(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
-   * Creates a new QatZipper with the specified {@link Algorithm}, compression level, and {@link
+   * Creates a new QatZipBackend with the specified {@link Algorithm}, compression level, and {@link
    * Mode}. Uses {@link DEFAULT_RETRY_COUNT} retries.
    *
    * @param algorithm the compression algorithm (deflate or LZ4).
@@ -173,12 +153,12 @@ public class QatZipBackend extends ZipperBackend{
    * @param mode the mode of operation (HARDWARE - only hardware, AUTO - hardware with a software
    *     failover.)
    */
-  public QatZipper(Algorithm algorithm, int level, Mode mode) {
+  public QatZipBackend(Algorithm algorithm, int level, Mode mode) {
     this(algorithm, level, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
-   * Creates a new QatZipper with the specified parameters.
+   * Creates a new QatZipBackend with the specified parameters.
    *
    * @param algorithm the compression {@link Algorithm}
    * @param level the compression level.
@@ -186,15 +166,13 @@ public class QatZipBackend extends ZipperBackend{
    * @param retryCount the number of attempts to acquire hardware resources
    * @throws QatException if QAT session cannot be created.
    */
-  public QatZipper(Algorithm algorithm, int level, Mode mode, int retryCount) throws QatException {
+  public QatZipBackend(Algorithm algorithm, int level, Mode mode, int retryCount)
+      throws QatException {
     if (!validateParams(algorithm, level, retryCount))
       throw new IllegalArgumentException("Invalid compression level or retry count.");
 
     this.retryCount = retryCount;
     InternalJNI.setup(this, mode.ordinal(), algorithm.ordinal(), level);
-
-    // Register a QAT session cleaner for this object
-    cleanable = cleaner.register(this, new QatCleaner(session));
     isValid = true;
   }
 
@@ -508,22 +486,5 @@ public class QatZipBackend extends ZipperBackend{
     if (!isValid) throw new IllegalStateException("QAT session has been closed.");
     InternalJNI.teardown(session);
     isValid = false;
-  }
-
-  /** A class that represents a cleaner action for a QAT session. */
-  static class QatCleaner implements Runnable {
-    private long qzSession;
-
-    /** Creates a new cleaner object that cleans up the specified session. */
-    public QatCleaner(long session) {
-      this.qzSession = qzSession;
-    }
-
-    @Override
-    public void run() {
-      if (qzSession != 0) {
-        InternalJNI.teardown(qzSession);
-      }
-    }
   }
 }
