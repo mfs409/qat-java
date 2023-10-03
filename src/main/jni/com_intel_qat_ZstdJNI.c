@@ -109,6 +109,8 @@ static void decompress(JNIEnv *env, ZSTD_DCtx *dctx, unsigned char *src_ptr,
   if (ZSTD_isError(frame_size)) {
     fprintf(stderr, "... failed to get frame size: %s\n", ZSTD_getErrorName(frame_size));
     fflush(stderr);
+    throw_exception(env, frame_size, ZSTD_getErrorName(frame_size));
+    return;
   }
   if (frame_size > src_len) {
     // this is probably unreachable (I think zstd handles it for us)
