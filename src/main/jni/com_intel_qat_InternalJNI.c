@@ -78,7 +78,6 @@ static int setup_lz4_session(QzSession_T *qz_session, int level,
  * @param bytes_written an out parameter that stores the bytes written to the
  * destination buffer.
  * @param retry_count the number of compression retries before we give up.
- * @return QZ_OK (0) if successful, non-zero otherwise.
  */
 static void compress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
                     unsigned int src_len, unsigned char *dst_ptr,
@@ -119,7 +118,6 @@ static void compress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
  * @param bytes_written an out parameter that stores the bytes written to the
  * destination buffer.
  * @param retry_count the number of decompression retries before we give up.
- * @return QZ_OK (0) if successful, non-zero otherwise.
  */
 static void decompress(JNIEnv *env, QzSession_T *sess, unsigned char *src_ptr,
                       unsigned int src_len, unsigned char *dst_ptr,
@@ -177,7 +175,7 @@ JNIEXPORT void JNICALL Java_com_intel_qat_InternalJNI_setup(
     return;
   }
 
-  jclass qz_clazz = (*env)->FindClass(env, "com/intel/qat/QatZipper");
+  jclass qz_clazz = (*env)->FindClass(env, "com/intel/qat/QatZipBackend");
   jfieldID qz_session_field = (*env)->GetFieldID(env, qz_clazz, "session", "J");
   (*env)->SetLongField(env, qat_zipper, qz_session_field, (jlong)qz_session);
 }
