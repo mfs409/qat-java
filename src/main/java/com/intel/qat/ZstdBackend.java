@@ -1,18 +1,13 @@
 package com.intel.qat;
 
-import java.lang.ref.Cleaner;
-import java.nio.ByteBuffer;
-import java.nio.ReadOnlyBufferException;
+// TODO: ZstdBackend should extend ZipperBackend
+public class ZstdBackend {
 
+  // long cctx;
 
-public class ZstdBackend extends ZipperBackend{
-    
-    // long cctx;
+  // long dctx;
 
-    // long dctx;
+  // long sequenceProducerState;
 
-    // long sequenceProducerState;
-
-
-    // //setup and teardown functions must use locks
+  // //setup and teardown functions must use locks
 }

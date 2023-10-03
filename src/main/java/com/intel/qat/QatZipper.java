@@ -8,7 +8,6 @@ package com.intel.qat;
 
 import java.lang.ref.Cleaner;
 import java.nio.ByteBuffer;
-import java.nio.ReadOnlyBufferException;
 
 /**
  * This class provides methods that can be used to compress and decompress data using {@link
@@ -54,7 +53,7 @@ import java.nio.ReadOnlyBufferException;
  */
 public class QatZipper {
 
-  /** The backend wrapper  */
+  /** The backend wrapper */
   private ZipperBackend backend;
 
   /** The default compression level is 6. */
@@ -65,7 +64,7 @@ public class QatZipper {
    */
   public static final int DEFAULT_RETRY_COUNT = 0;
 
-  //TODO: determine how to use Cleaners
+  // TODO: determine how to use Cleaners
 
   /** Cleaner instance associated with this object. */
   private static Cleaner cleaner;
@@ -122,7 +121,7 @@ public class QatZipper {
    * {@link Mode#HARDWARE}, and {@link DEFAULT_RETRY_COUNT}.
    */
   public QatZipper() {
-    backend = new QatZipBackend(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
+    this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -133,7 +132,7 @@ public class QatZipper {
    * @param mode the {@link Mode} of QAT execution
    */
   public QatZipper(Mode mode) {
-    backend = new QatZipBackend(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
+    this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -144,11 +143,7 @@ public class QatZipper {
    * @param algorithm the compression {@link Algorithm}
    */
   public QatZipper(Algorithm algorithm) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    } else {
-      backend = new QatZipBackend(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    } 
+    this(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -159,11 +154,7 @@ public class QatZipper {
    * @param mode the {@link Mode} of QAT execution
    */
   public QatZipper(Algorithm algorithm, Mode mode) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
-    } else {
-      backend = new QatZipBackend(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
-    } 
+    this(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -174,11 +165,7 @@ public class QatZipper {
    * @param level the compression level.
    */
   public QatZipper(Algorithm algorithm, int level) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    } else {
-      backend = new QatZipBackend(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    }   
+    this(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -191,11 +178,7 @@ public class QatZipper {
    *     failover.)
    */
   public QatZipper(Algorithm algorithm, int level, Mode mode) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, level, mode, DEFAULT_RETRY_COUNT;
-    } else {
-      backend = new QatZipBackend(algorithm, level, mode, DEFAULT_RETRY_COUNT);
-    }   
+    this(algorithm, level, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -208,12 +191,15 @@ public class QatZipper {
    * @throws QatException if QAT session cannot be created.
    */
   public QatZipper(Algorithm algorithm, int level, Mode mode, int retryCount) throws QatException {
-
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, level, mode, retryCount);
+    if (algorithm == Algorithm.ZSTD) {
+      // The below line should be replaced with the comment calling ZstdBackend()
+      backend = new QatZipBackend(Algorithm.ZSTD, level, mode, retryCount);
+      // TODO: fix this conditonal during merge with ztsd-jni branch
+      // backend = new ZstdBackend(algorithm, level, mode, retryCount);
     } else {
       backend = new QatZipBackend(algorithm, level, mode, retryCount);
-    }   
+    }
+    cleanable = cleaner.register(this, new QatCleaner(backend));
   }
 
   /**
@@ -329,7 +315,7 @@ public class QatZipper {
     backend.end();
   }
 
-  //TODO: Review if the QatCleaner class works
+  // TODO: Review if the QatCleaner class works
   /** A class that represents a cleaner action for a QAT session. */
   static class QatCleaner implements Runnable {
     private ZipperBackend backend;

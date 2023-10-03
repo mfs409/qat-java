@@ -6,6 +6,9 @@
 
 package com.intel.qat;
 
+import static com.intel.qat.QatZipper.Algorithm;
+import static com.intel.qat.QatZipper.Mode;
+
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 
@@ -97,7 +100,11 @@ public class QatZipBackend extends ZipperBackend {
    * DEFAULT_COMPRESS_LEVEL}, {@link Mode#HARDWARE}, and {@link DEFAULT_RETRY_COUNT}.
    */
   public QatZipBackend() {
-    this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
+    this(
+        QatZipper.Algorithm.DEFLATE,
+        DEFAULT_COMPRESS_LEVEL,
+        QatZipper.Mode.HARDWARE,
+        DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -107,8 +114,8 @@ public class QatZipBackend extends ZipperBackend {
    *
    * @param mode the {@link Mode} of QAT execution
    */
-  public QatZipBackend(Mode mode) {
-    this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
+  public QatZipBackend(QatZipper.Mode mode) {
+    this(QatZipper.Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -118,8 +125,8 @@ public class QatZipBackend extends ZipperBackend {
    *
    * @param algorithm the compression {@link Algorithm}
    */
-  public QatZipBackend(Algorithm algorithm) {
-    this(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
+  public QatZipBackend(QatZipper.Algorithm algorithm) {
+    this(algorithm, DEFAULT_COMPRESS_LEVEL, QatZipper.Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -129,7 +136,7 @@ public class QatZipBackend extends ZipperBackend {
    * @param algorithm the compression {@link Algorithm}
    * @param mode the {@link Mode} of QAT execution
    */
-  public QatZipBackend(Algorithm algorithm, Mode mode) {
+  public QatZipBackend(QatZipper.Algorithm algorithm, QatZipper.Mode mode) {
     this(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
@@ -140,8 +147,8 @@ public class QatZipBackend extends ZipperBackend {
    * @param algorithm the compression algorithm (deflate or LZ4).
    * @param level the compression level.
    */
-  public QatZipBackend(Algorithm algorithm, int level) {
-    this(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
+  public QatZipBackend(QatZipper.Algorithm algorithm, int level) {
+    this(algorithm, level, QatZipper.Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -153,7 +160,7 @@ public class QatZipBackend extends ZipperBackend {
    * @param mode the mode of operation (HARDWARE - only hardware, AUTO - hardware with a software
    *     failover.)
    */
-  public QatZipBackend(Algorithm algorithm, int level, Mode mode) {
+  public QatZipBackend(QatZipper.Algorithm algorithm, int level, QatZipper.Mode mode) {
     this(algorithm, level, mode, DEFAULT_RETRY_COUNT);
   }
 
@@ -166,7 +173,7 @@ public class QatZipBackend extends ZipperBackend {
    * @param retryCount the number of attempts to acquire hardware resources
    * @throws QatException if QAT session cannot be created.
    */
-  public QatZipBackend(Algorithm algorithm, int level, Mode mode, int retryCount)
+  QatZipBackend(QatZipper.Algorithm algorithm, int level, QatZipper.Mode mode, int retryCount)
       throws QatException {
     if (!validateParams(algorithm, level, retryCount))
       throw new IllegalArgumentException("Invalid compression level or retry count.");
