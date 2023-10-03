@@ -36,7 +36,7 @@ public class QatDecompressorInputStream extends FilterInputStream {
    * @param in the input stream
    */
   public QatDecompressorInputStream(InputStream in) {
-    this(in, DEFAULT_BUFFER_SIZE, Algorithm.DEFLATE, Mode.AUTO);
+    this(in, DEFAULT_BUFFER_SIZE, Algorithm.ZSTD, Mode.AUTO);
   }
 
   /**
@@ -46,7 +46,7 @@ public class QatDecompressorInputStream extends FilterInputStream {
    * @param bufferSize the input buffer size
    */
   public QatDecompressorInputStream(InputStream in, int bufferSize) {
-    this(in, bufferSize, Algorithm.DEFLATE, Mode.AUTO);
+    this(in, bufferSize, Algorithm.ZSTD, Mode.AUTO);
   }
 
   /**

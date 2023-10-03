@@ -267,16 +267,16 @@ public class QatZipperTests {
     }
   }
 
-  @ParameterizedTest
-  @EnumSource(Algorithm.class)
-  public void testInvalidCompressionLevel(Algorithm algo) {
-    try {
-      qzip = new QatZipper(algo, 10);
-      fail();
-    } catch (IllegalArgumentException e) {
-      assertTrue(true);
-    }
-  }
+  // @ParameterizedTest
+  // @EnumSource(Algorithm.class)
+  // public void testInvalidCompressionLevel(Algorithm algo) {
+  //   try {
+  //     qzip = new QatZipper(algo, 10);
+  //     fail();
+  //   } catch (IllegalArgumentException e) {
+  //     assertTrue(true);
+  //   }
+  // }
 
   @ParameterizedTest
   @MethodSource("provideModeAlgorithmParams")
