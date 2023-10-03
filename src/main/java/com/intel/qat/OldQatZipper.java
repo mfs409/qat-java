@@ -53,10 +53,6 @@ import java.nio.ReadOnlyBufferException;
  * becomes phantom reachable.
  */
 public class QatZipper {
-
-  /** The backend wrapper  */
-  private ZipperBackend backend;
-
   /** The default compression level is 6. */
   public static final int DEFAULT_COMPRESS_LEVEL = 6;
 
@@ -65,7 +61,9 @@ public class QatZipper {
    */
   public static final int DEFAULT_RETRY_COUNT = 0;
 
-  //TODO: determine how to use Cleaners
+  private boolean isValid;
+
+  private int retryCount;
 
   /** Cleaner instance associated with this object. */
   private static Cleaner cleaner;
@@ -111,10 +109,7 @@ public class QatZipper {
     DEFLATE,
 
     /** The LZ4 compression algorithm. */
-    LZ4,
-
-    /** The Zstandard compression algorithm */
-    ZSTD
+    LZ4
   }
 
   /**
@@ -122,7 +117,7 @@ public class QatZipper {
    * {@link Mode#HARDWARE}, and {@link DEFAULT_RETRY_COUNT}.
    */
   public QatZipper() {
-    backend = new QatZipBackend(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
+    this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -133,7 +128,7 @@ public class QatZipper {
    * @param mode the {@link Mode} of QAT execution
    */
   public QatZipper(Mode mode) {
-    backend = new QatZipBackend(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
+    this(Algorithm.DEFLATE, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -144,11 +139,7 @@ public class QatZipper {
    * @param algorithm the compression {@link Algorithm}
    */
   public QatZipper(Algorithm algorithm) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    } else {
-      backend = new QatZipBackend(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    } 
+    this(algorithm, DEFAULT_COMPRESS_LEVEL, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -159,11 +150,7 @@ public class QatZipper {
    * @param mode the {@link Mode} of QAT execution
    */
   public QatZipper(Algorithm algorithm, Mode mode) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
-    } else {
-      backend = new QatZipBackend(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
-    } 
+    this(algorithm, DEFAULT_COMPRESS_LEVEL, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -174,11 +161,7 @@ public class QatZipper {
    * @param level the compression level.
    */
   public QatZipper(Algorithm algorithm, int level) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    } else {
-      backend = new QatZipBackend(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
-    }   
+    this(algorithm, level, Mode.HARDWARE, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -191,11 +174,7 @@ public class QatZipper {
    *     failover.)
    */
   public QatZipper(Algorithm algorithm, int level, Mode mode) {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, level, mode, DEFAULT_RETRY_COUNT;
-    } else {
-      backend = new QatZipBackend(algorithm, level, mode, DEFAULT_RETRY_COUNT);
-    }   
+    this(algorithm, level, mode, DEFAULT_RETRY_COUNT);
   }
 
   /**
@@ -208,11 +187,27 @@ public class QatZipper {
    * @throws QatException if QAT session cannot be created.
    */
   public QatZipper(Algorithm algorithm, int level, Mode mode, int retryCount) throws QatException {
-    if(algorithm == Algorithm.ZSTD){
-      backend = new ZstdBackend(algorithm, level, mode, retryCount);
-    } else {
-      backend = new QatZipBackend(algorithm, level, mode, retryCount);
-    }   
+    if (!validateParams(algorithm, level, retryCount))
+      throw new IllegalArgumentException("Invalid compression level or retry count.");
+
+    this.retryCount = retryCount;
+    InternalJNI.setup(this, mode.ordinal(), algorithm.ordinal(), level);
+
+    // Register a QAT session cleaner for this object
+    cleanable = cleaner.register(this, new QatCleaner(session));
+    isValid = true;
+  }
+
+  /**
+   * Validates compression level and retry counts.
+   *
+   * @param algorithm the compression {@link algorithm}
+   * @param level the compression level.
+   * @param retryCount how many times to seek for a hardware resources before giving up.
+   * @return true if validation was successful, false otherwise.
+   */
+  private boolean validateParams(Algorithm algorithm, int level, int retryCount) {
+    return !(retryCount < 0 || level < 1 || level > 9);
   }
 
   /**
@@ -223,7 +218,9 @@ public class QatZipper {
    * @return the maximum compression length for the specified length.
    */
   public int maxCompressedLength(long len) {
-    return backend.maxCompressedSize(len);
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
+
+    return InternalJNI.maxCompressedSize(session, len);
   }
 
   /**
@@ -235,7 +232,7 @@ public class QatZipper {
    * @return the size of the compressed data in bytes
    */
   public int compress(byte[] src, byte[] dst) {
-    return backend.compress(src, dst);
+    return compress(src, 0, src.length, dst, 0, dst.length);
   }
 
   /**
@@ -253,7 +250,20 @@ public class QatZipper {
    */
   public int compress(
       byte[] src, int srcOffset, int srcLen, byte[] dst, int dstOffset, int dstLen) {
-    return backend.compress(src, srcOffset, srcLen, dst, dstOffset, dstLen);
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
+
+    if (src == null || dst == null || srcLen == 0 || dst.length == 0)
+      throw new IllegalArgumentException(
+          "Either source or destination array or both have size 0 or null value.");
+
+    if (srcOffset < 0 || (srcLen > src.length) || srcOffset >= src.length)
+      throw new ArrayIndexOutOfBoundsException("Source offset is out of bounds.");
+
+    int compressedSize =
+        InternalJNI.compressByteArray(
+            session, src, srcOffset, srcLen, dst, dstOffset, dstLen, retryCount);
+
+    return compressedSize;
   }
 
   /**
@@ -269,7 +279,85 @@ public class QatZipper {
    * @return returns the size of the compressed data in bytes
    */
   public int compress(ByteBuffer src, ByteBuffer dst) {
-    return backend.compress(src, dst);
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
+
+    if ((src == null || dst == null)
+        || (src.position() == src.limit() || dst.position() == dst.limit()))
+      throw new IllegalArgumentException();
+
+    if (dst.isReadOnly()) throw new ReadOnlyBufferException();
+
+    int compressedSize = 0;
+    if (src.hasArray() && dst.hasArray()) {
+      compressedSize =
+          InternalJNI.compressByteBuffer(
+              session,
+              src,
+              src.array(),
+              src.position(),
+              src.remaining(),
+              dst.array(),
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+      dst.position(dst.position() + compressedSize);
+    } else if (src.isDirect() && dst.isDirect()) {
+      compressedSize =
+          InternalJNI.compressDirectByteBuffer(
+              session,
+              src,
+              src.position(),
+              src.remaining(),
+              dst,
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+    } else if (src.hasArray() && dst.isDirect()) {
+      compressedSize =
+          InternalJNI.compressDirectByteBufferDst(
+              session,
+              src,
+              src.array(),
+              src.position(),
+              src.remaining(),
+              dst,
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+    } else if (src.isDirect() && dst.hasArray()) {
+      compressedSize =
+          InternalJNI.compressDirectByteBufferSrc(
+              session,
+              src,
+              src.position(),
+              src.remaining(),
+              dst.array(),
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+      dst.position(dst.position() + compressedSize);
+    } else {
+      int srcLen = src.remaining();
+      int dstLen = dst.remaining();
+
+      byte[] srcArr = new byte[srcLen];
+      byte[] dstArr = new byte[dstLen];
+
+      src.get(srcArr);
+      dst.get(dstArr);
+
+      src.position(src.position() - srcLen);
+      dst.position(dst.position() - dstLen);
+
+      int srcPos = src.position();
+      compressedSize =
+          InternalJNI.compressByteBuffer(
+              session, src, srcArr, 0, srcLen, dstArr, 0, dstLen, retryCount);
+      src.position(srcPos + src.position());
+      dst.put(dstArr, 0, compressedSize);
+    }
+
+    return compressedSize;
   }
 
   /**
@@ -281,7 +369,7 @@ public class QatZipper {
    * @return the size of the decompressed data in bytes
    */
   public int decompress(byte[] src, byte[] dst) {
-    return backend.decompress(src, dst);
+    return decompress(src, 0, src.length, dst, 0, dst.length);
   }
 
   /**
@@ -299,7 +387,19 @@ public class QatZipper {
    */
   public int decompress(
       byte[] src, int srcOffset, int srcLen, byte[] dst, int dstOffset, int dstLen) {
-    return backend.decompress(src, srcOffset, srcLen, dst, dstOffset, dstLen);
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
+
+    if (src == null || dst == null || srcLen == 0 || dst.length == 0)
+      throw new IllegalArgumentException("Empty source or/and destination byte array(s).");
+
+    if (srcOffset < 0 || (srcLen > src.length) || srcOffset >= src.length)
+      throw new ArrayIndexOutOfBoundsException("Source offset is out of bounds.");
+
+    int decompressedSize =
+        InternalJNI.decompressByteArray(
+            session, src, srcOffset, srcLen, dst, dstOffset, dstLen, retryCount);
+
+    return decompressedSize;
   }
 
   /**
@@ -315,7 +415,87 @@ public class QatZipper {
    * @return returns the size of the decompressed data in bytes
    */
   public int decompress(ByteBuffer src, ByteBuffer dst) {
-    return backend.decompress(src, dst);
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
+
+    if ((src == null || dst == null)
+        || (src.position() == src.limit() || dst.position() == dst.limit()))
+      throw new IllegalArgumentException();
+
+    if (dst.isReadOnly()) throw new ReadOnlyBufferException();
+
+    int decompressedSize = 0;
+    if (src.hasArray() && dst.hasArray()) {
+      decompressedSize =
+          InternalJNI.decompressByteBuffer(
+              session,
+              src,
+              src.array(),
+              src.position(),
+              src.remaining(),
+              dst.array(),
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+      dst.position(dst.position() + decompressedSize);
+    } else if (src.isDirect() && dst.isDirect()) {
+      decompressedSize =
+          InternalJNI.decompressDirectByteBuffer(
+              session,
+              src,
+              src.position(),
+              src.remaining(),
+              dst,
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+    } else if (src.hasArray() && dst.isDirect()) {
+      decompressedSize =
+          InternalJNI.decompressDirectByteBufferDst(
+              session,
+              src,
+              src.array(),
+              src.position(),
+              src.remaining(),
+              dst,
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+    } else if (src.isDirect() && dst.hasArray()) {
+      decompressedSize =
+          InternalJNI.decompressDirectByteBufferSrc(
+              session,
+              src,
+              src.position(),
+              src.remaining(),
+              dst.array(),
+              dst.position(),
+              dst.remaining(),
+              retryCount);
+      dst.position(dst.position() + decompressedSize);
+    } else {
+      int srcLen = src.remaining();
+      int dstLen = dst.remaining();
+
+      byte[] srcArr = new byte[srcLen];
+      byte[] dstArr = new byte[dstLen];
+
+      src.get(srcArr);
+      dst.get(dstArr);
+
+      src.position(src.position() - srcLen);
+      dst.position(dst.position() - dstLen);
+
+      int srcPos = src.position();
+      decompressedSize =
+          InternalJNI.decompressByteBuffer(
+              session, src, srcArr, 0, srcLen, dstArr, 0, dstLen, retryCount);
+      src.position(srcPos + src.position());
+      dst.put(dstArr, 0, decompressedSize);
+    }
+
+    if (decompressedSize < 0) throw new QatException("QAT: Compression failed");
+
+    return decompressedSize;
   }
 
   /**
@@ -325,23 +505,24 @@ public class QatZipper {
    * @throws QatException if QAT session cannot be gracefully ended.
    */
   public void end() throws QatException {
-    backend.end();
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
+    InternalJNI.teardown(session);
+    isValid = false;
   }
 
-  //TODO: Review if the QatCleaner class works
   /** A class that represents a cleaner action for a QAT session. */
   static class QatCleaner implements Runnable {
-    private ZipperBackend backend;
+    private long qzSession;
 
     /** Creates a new cleaner object that cleans up the specified session. */
-    public QatCleaner(ZipperBackend backend) {
-      this.backend = backend;
+    public QatCleaner(long session) {
+      this.qzSession = qzSession;
     }
 
     @Override
     public void run() {
-      if (backend != null) {
-        backend.end();
+      if (qzSession != 0) {
+        InternalJNI.teardown(qzSession);
       }
     }
   }
