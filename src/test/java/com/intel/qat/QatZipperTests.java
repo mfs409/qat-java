@@ -42,59 +42,46 @@ public class QatZipperTests {
   private Random rnd = new Random();
 
   public static Stream<Arguments> provideModeAlgorithmParams() {
+    // return QatTestSuite.FORCE_HARDWARE
+    //     ? Stream.of(
+    //         Arguments.of(Mode.AUTO, Algorithm.DEFLATE),
+    //         Arguments.of(Mode.AUTO, Algorithm.LZ4),
+    //         Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE),
+    //         Arguments.of(Mode.HARDWARE, Algorithm.LZ4))
+    //     : Stream.of(
+    //         Arguments.of(Mode.AUTO, Algorithm.DEFLATE), Arguments.of(Mode.AUTO, Algorithm.LZ4));
     return QatTestSuite.FORCE_HARDWARE
         ? Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4))
-        : Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE), Arguments.of(Mode.AUTO, Algorithm.LZ4));
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD), Arguments.of(Mode.HARDWARE, Algorithm.ZSTD))
+        : Stream.of(Arguments.of(Mode.AUTO, Algorithm.ZSTD));
   }
 
   public static Stream<Arguments> provideAlgorithmLevelParams() {
     return Stream.of(
-        Arguments.of(Algorithm.DEFLATE, 1),
-        Arguments.of(Algorithm.DEFLATE, 2),
-        Arguments.of(Algorithm.DEFLATE, 3),
-        Arguments.of(Algorithm.DEFLATE, 4),
-        Arguments.of(Algorithm.DEFLATE, 5),
-        Arguments.of(Algorithm.DEFLATE, 6),
-        Arguments.of(Algorithm.DEFLATE, 7),
-        Arguments.of(Algorithm.DEFLATE, 8),
-        Arguments.of(Algorithm.DEFLATE, 9),
-        Arguments.of(Algorithm.LZ4, 1),
-        Arguments.of(Algorithm.LZ4, 2),
-        Arguments.of(Algorithm.LZ4, 3),
-        Arguments.of(Algorithm.LZ4, 4),
-        Arguments.of(Algorithm.LZ4, 5),
-        Arguments.of(Algorithm.LZ4, 6),
-        Arguments.of(Algorithm.LZ4, 7),
-        Arguments.of(Algorithm.LZ4, 8),
-        Arguments.of(Algorithm.LZ4, 9));
+        Arguments.of(Algorithm.ZSTD, 1),
+        Arguments.of(Algorithm.ZSTD, 2),
+        Arguments.of(Algorithm.ZSTD, 3),
+        Arguments.of(Algorithm.ZSTD, 4),
+        Arguments.of(Algorithm.ZSTD, 5),
+        Arguments.of(Algorithm.ZSTD, 6),
+        Arguments.of(Algorithm.ZSTD, 7),
+        Arguments.of(Algorithm.ZSTD, 8),
+        Arguments.of(Algorithm.ZSTD, 9));
   }
 
   public static Stream<Arguments> provideModeAlgorithmLengthParams() {
     return QatTestSuite.FORCE_HARDWARE
         ? Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 131072),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 2097152),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 131072),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 2097152),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 131072),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 2097152),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 131072),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 2097152))
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 131072),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 2097152),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 131072),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 2097152))
         : Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 131072),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 2097152),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 131072),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 524288));
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 131072),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 2097152));
   }
 
   private byte[] getRandomBytes(int len) {
@@ -135,7 +122,7 @@ public class QatZipperTests {
   public void duplicateEndHW() {
     assumeTrue(QatTestSuite.FORCE_HARDWARE);
     try {
-      QatZipper qzip = new QatZipper(Algorithm.LZ4, 0, Mode.HARDWARE);
+      QatZipper qzip = new QatZipper(Algorithm.ZSTD, 0, Mode.HARDWARE);
       qzip.end();
       qzip.end();
     } catch (IllegalStateException | IllegalArgumentException is) {

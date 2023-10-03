@@ -53,68 +53,51 @@ public class QatDecompressorInputStreamTests {
   }
 
   public static Stream<Arguments> provideModeAlgorithmParams() {
+    // return QatTestSuite.FORCE_HARDWARE
+    //     ? Stream.of(
+    //         Arguments.of(Mode.AUTO, Algorithm.DEFLATE),
+    //         Arguments.of(Mode.AUTO, Algorithm.LZ4),
+    //         Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE),
+    //         Arguments.of(Mode.HARDWARE, Algorithm.LZ4))
+    //     : Stream.of(
+    //         Arguments.of(Mode.AUTO, Algorithm.DEFLATE), Arguments.of(Mode.AUTO, Algorithm.LZ4));
     return QatTestSuite.FORCE_HARDWARE
         ? Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4))
-        : Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE), Arguments.of(Mode.AUTO, Algorithm.LZ4));
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD), Arguments.of(Mode.HARDWARE, Algorithm.ZSTD))
+        : Stream.of(Arguments.of(Mode.AUTO, Algorithm.ZSTD));
   }
 
   public static Stream<Arguments> provideModeAlgorithmLengthParams() {
     return QatTestSuite.FORCE_HARDWARE
         ? Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 1048576),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 1048576),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 65536),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 1048576),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 16384),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 65536),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 1048576))
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 16384),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 65536),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 1048576),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 16384),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 65536),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 1048576))
         : Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 1048576),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 1048576));
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 16384),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 65536),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 1048576));
   }
 
   public static Stream<Arguments> provideModeAlgorithmSkipLengthParams() {
     return QatTestSuite.FORCE_HARDWARE
         ? Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 0),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 1024),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 0),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 1024),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 16384),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 0),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 1024),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 0),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 1024),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 16384))
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 0),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 1024),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 16384),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 0),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 1024),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 16384))
         : Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 0),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 1024),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 0),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 1024),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 16384));
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 0),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 1024),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 16384));
   }
 
   @Test

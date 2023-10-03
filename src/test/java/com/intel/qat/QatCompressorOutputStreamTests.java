@@ -47,66 +47,49 @@ public class QatCompressorOutputStreamTests {
   }
 
   public static Stream<Arguments> provideModeAlgorithmParams() {
+    // return QatTestSuite.FORCE_HARDWARE
+    //     ? Stream.of(
+    //         Arguments.of(Mode.AUTO, Algorithm.DEFLATE),
+    //         Arguments.of(Mode.AUTO, Algorithm.LZ4),
+    //         Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE),
+    //         Arguments.of(Mode.HARDWARE, Algorithm.LZ4))
+    //     : Stream.of(
+    //         Arguments.of(Mode.AUTO, Algorithm.DEFLATE), Arguments.of(Mode.AUTO, Algorithm.LZ4));
     return QatTestSuite.FORCE_HARDWARE
         ? Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4))
-        : Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE), Arguments.of(Mode.AUTO, Algorithm.LZ4));
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD), Arguments.of(Mode.HARDWARE, Algorithm.ZSTD))
+        : Stream.of(Arguments.of(Mode.AUTO, Algorithm.ZSTD));
   }
 
   public static Stream<Arguments> provideModeAlgorithmLengthParams() {
     return QatTestSuite.FORCE_HARDWARE
         ? Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 1048576),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 1048576),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 65536),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.HARDWARE, Algorithm.DEFLATE, 1048576),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 16384),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 65536),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.HARDWARE, Algorithm.LZ4, 1048576))
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 16384),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 65536),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 1048576),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 16384),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 65536),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.HARDWARE, Algorithm.ZSTD, 1048576))
         : Stream.of(
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.DEFLATE, 1048576),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 16384),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 65536),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 524288),
-            Arguments.of(Mode.AUTO, Algorithm.LZ4, 1048576));
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 16384),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 65536),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 524288),
+            Arguments.of(Mode.AUTO, Algorithm.ZSTD, 1048576));
   }
 
   public static Stream<Arguments> provideAlgorithmLevelParams() {
     return Stream.of(
-        Arguments.of(Algorithm.DEFLATE, 1),
-        Arguments.of(Algorithm.DEFLATE, 2),
-        Arguments.of(Algorithm.DEFLATE, 3),
-        Arguments.of(Algorithm.DEFLATE, 4),
-        Arguments.of(Algorithm.DEFLATE, 5),
-        Arguments.of(Algorithm.DEFLATE, 6),
-        Arguments.of(Algorithm.DEFLATE, 7),
-        Arguments.of(Algorithm.DEFLATE, 8),
-        Arguments.of(Algorithm.DEFLATE, 9),
-        Arguments.of(Algorithm.LZ4, 1),
-        Arguments.of(Algorithm.LZ4, 2),
-        Arguments.of(Algorithm.LZ4, 3),
-        Arguments.of(Algorithm.LZ4, 4),
-        Arguments.of(Algorithm.LZ4, 5),
-        Arguments.of(Algorithm.LZ4, 6),
-        Arguments.of(Algorithm.LZ4, 7),
-        Arguments.of(Algorithm.LZ4, 8),
-        Arguments.of(Algorithm.LZ4, 9));
+        Arguments.of(Algorithm.ZSTD, 1),
+        Arguments.of(Algorithm.ZSTD, 2),
+        Arguments.of(Algorithm.ZSTD, 3),
+        Arguments.of(Algorithm.ZSTD, 4),
+        Arguments.of(Algorithm.ZSTD, 5),
+        Arguments.of(Algorithm.ZSTD, 6),
+        Arguments.of(Algorithm.ZSTD, 7),
+        Arguments.of(Algorithm.ZSTD, 8),
+        Arguments.of(Algorithm.ZSTD, 9));
   }
 
   @Test

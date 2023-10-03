@@ -18,7 +18,8 @@
  * Number of active sessions. Used to prevent accidentally stopping or starting
  * the QAT device when used by multiple threads.
  */
-static _Atomic int active_sessions;
+// static _Atomic int active_sessions = 0;
+// static int initialized = 0;
 
 /**
  * The fieldID for java.nio.ByteBuffer/position
@@ -49,9 +50,18 @@ static void compress(JNIEnv *env, ZSTD_CCtx *cctx, unsigned char *src_ptr,
                     unsigned int dst_len, int *bytes_read, int *bytes_written,
                     int retry_count) {
   (void)retry_count; // TODO: implement retry
+
+  fprintf(stderr, "about to compress\n");
+  fflush(stderr);
+  fprintf(stderr, "src %p len %d dst %p len %d\n", src_ptr, src_len, dst_ptr, dst_len);
+  fflush(stderr);
   
   size_t res = ZSTD_compress2(cctx, dst_ptr, dst_len, src_ptr, src_len);
+  fprintf(stderr, "just compressed\n");
+  fflush(stderr);
   if (ZSTD_isError(res)) {
+    fprintf(stderr, "... and got zstd error: %s\n", ZSTD_getErrorName(res));
+    fflush(stderr);
     throw_exception(env, res, ZSTD_getErrorName(res));
     return;
   }
@@ -87,9 +97,18 @@ static void decompress(JNIEnv *env, ZSTD_DCtx *dctx, unsigned char *src_ptr,
                       unsigned int dst_len, int *bytes_read, int *bytes_written,
                       int retry_count) {
   (void)retry_count; // TODO: implement retry
+
+  fprintf(stderr, "about to decompress\n");
+  fflush(stderr);
+  fprintf(stderr, "src %p len %d dst %p len %d\n", src_ptr, src_len, dst_ptr, dst_len);
+  fflush(stderr);
   
   size_t res = ZSTD_decompressDCtx(dctx, dst_ptr, dst_len, src_ptr, src_len);
+  fprintf(stderr, "just decompressed\n");
+  fflush(stderr);
   if (ZSTD_isError(res)) {
+    fprintf(stderr, "... and got zstd error: %s\n", ZSTD_getErrorName(res));
+    fflush(stderr);
     throw_exception(env, res, ZSTD_getErrorName(res));
     return;
   }
@@ -120,13 +139,15 @@ JNIEXPORT void JNICALL Java_com_intel_qat_ZstdJNI_setup(
       env, (*env)->FindClass(env, "java/nio/ByteBuffer"), "position", "I");
 
   // Start QAT device
-  if (atomic_fetch_add(&active_sessions, 1) == 0) {
-    int status = QZSTD_startQatDevice();
-    if (status != QZSTD_OK) {
-      throw_exception(env, status, "Initializing QAT HW failed.");
+  // if (atomic_fetch_add(&active_sessions, 1) == 0) {
+  // if (initialized == 0) {
+  //   initialized = 1;
+    int status0 = QZSTD_startQatDevice();
+    if (status0 != QZSTD_OK) {
+      throw_exception(env, status0, "Initializing QAT HW failed.");
       return;
     }
-  }
+  // }
 
   // Create compression/decompression contexts
   ZSTD_CCtx *cctx = ZSTD_createCCtx();
@@ -511,7 +532,6 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_ZstdJNI_maxCompressedSize(
     JNIEnv *env, jclass obj, jlong src_size) {
   (void)env;
   (void)obj;
-  (void)obj;
 
   return ZSTD_compressBound(src_size);
 }
@@ -533,10 +553,15 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_ZstdJNI_teardown(
   ZSTD_DCtx *dctx = (ZSTD_DCtx *)long_dctx;
   void *sequenceProducerState = (void *)long_sequenceProducerState;
 
+  fprintf(stderr, "about to free\n");
+  fflush(stderr);
+
   if (cctx) ZSTD_freeCCtx(cctx);
   if (dctx) ZSTD_freeDCtx(dctx);
   if (sequenceProducerState) QZSTD_freeSeqProdState(sequenceProducerState);
-  if (atomic_fetch_sub(&active_sessions, 1) == 1) QZSTD_stopQatDevice();
+  // if (atomic_fetch_sub(&active_sessions, 1) == 1) QZSTD_stopQatDevice();
+  // if (atomic_fetch_sub(&active_sessions, 1) == 1) QZSTD_stopQatDevice();
+  QZSTD_stopQatDevice();
 
   return QZ_OK;
 }
