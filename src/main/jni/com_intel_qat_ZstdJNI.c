@@ -105,7 +105,19 @@ static void decompress(JNIEnv *env, ZSTD_DCtx *dctx, unsigned char *src_ptr,
   fprintf(stderr, "dctx %p\n", (void *)dctx);
   fflush(stderr);
 
-  size_t res = ZSTD_decompressDCtx(dctx, dst_ptr, dst_len, src_ptr, src_len);
+  size_t frame_size = ZSTD_findFrameCompressedSize(src_ptr, src_len);
+  if (ZSTD_isError(frame_size)) {
+    fprintf(stderr, "... failed to get frame size: %s\n", ZSTD_getErrorName(frame_size));
+    fflush(stderr);
+  }
+  if (frame_size > src_len) {
+    // this is probably unreachable (I think zstd handles it for us)
+    fprintf(stderr, "error, compressed frame is truncated: %lu vs %d\n", frame_size, src_len);
+    fflush(stderr);
+    throw_exception(env, -1, "Compressed frame is truncated");
+  }
+
+  size_t res = ZSTD_decompressDCtx(dctx, dst_ptr, dst_len, src_ptr, frame_size);
   fprintf(stderr, "just decompressed\n");
   fflush(stderr);
   if (ZSTD_isError(res)) {
@@ -115,7 +127,7 @@ static void decompress(JNIEnv *env, ZSTD_DCtx *dctx, unsigned char *src_ptr,
     return;
   }
 
-  *bytes_read = src_len;
+  *bytes_read = frame_size;
   *bytes_written = res;
 }
 
