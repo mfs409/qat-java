@@ -68,15 +68,9 @@ static void compress(JNIEnv *env, ZSTD_CCtx *cctx, unsigned char *src_ptr,
     throw_exception(env, res, ZSTD_getErrorName(res));
     return;
   }
-  if (res != dst_len) {
-    char *msg = malloc(1000);
-    msg[0] = '\0';
-    sprintf(msg, "Failed to fully compress the input: %lu of %d", res, dst_len);
-    throw_exception(env, res, msg);
-  }
 
   *bytes_read = src_len;
-  *bytes_written = dst_len;
+  *bytes_written = res;
 }
 
 /**
@@ -120,16 +114,9 @@ static void decompress(JNIEnv *env, ZSTD_DCtx *dctx, unsigned char *src_ptr,
     throw_exception(env, res, ZSTD_getErrorName(res));
     return;
   }
-  if (res != dst_len) {
-    char *msg = malloc(1000);
-    msg[0] = '\0';
-    sprintf(msg, "Failed to fully decompress the input: %lu of %d", res, dst_len);
-    throw_exception(env, res, msg);
-    return;
-  }
 
   *bytes_read = src_len;
-  *bytes_written = dst_len;
+  *bytes_written = res;
 }
 
 /*
