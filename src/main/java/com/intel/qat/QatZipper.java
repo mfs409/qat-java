@@ -191,7 +191,8 @@ public class QatZipper {
       throw new IllegalArgumentException("Invalid compression level or retry count.");
 
     this.retryCount = retryCount;
-    InternalJNI.setup(this, mode.ordinal(), algorithm.ordinal(), level);
+    // TODO: call this with the backend and not null once we've refactored things!
+    InternalJNI.setup(null, mode.ordinal(), algorithm.ordinal(), level);
 
     // Register a QAT session cleaner for this object
     cleanable = cleaner.register(this, new QatCleaner(session));
