@@ -7,9 +7,9 @@
 #include "com_intel_qat_ZstdJNI.h"
 
 #include <qatseqprod.h>
+#include <stdatomic.h>
 #include <stdlib.h>
 #include <zstd.h>
-#include <stdatomic.h>
 
 #include "qatzip.h"
 #include "util.h"
@@ -46,16 +46,19 @@ _Thread_local static jfieldID nio_bytebuffer_position_id;
  * @return QZ_OK (0) if successful, non-zero otherwise.
  */
 static void compress(JNIEnv *env, ZSTD_CCtx *cctx, unsigned char *src_ptr,
-                    unsigned int src_len, unsigned char *dst_ptr,
-                    unsigned int dst_len, int *bytes_read, int *bytes_written,
-                    int retry_count) {
-  (void)retry_count; // TODO: implement retry
+                     unsigned int src_len, unsigned char *dst_ptr,
+                     unsigned int dst_len, int *bytes_read, int *bytes_written,
+                     int retry_count) {
+  (void)retry_count;  // TODO: implement retry
 
   fprintf(stderr, "about to compress\n");
   fflush(stderr);
-  fprintf(stderr, "src %p len %d dst %p len %d\n", src_ptr, src_len, dst_ptr, dst_len);
+  fprintf(stderr, "src %p len %d dst %p len %d\n", src_ptr, src_len, dst_ptr,
+          dst_len);
   fflush(stderr);
-  
+  fprintf(stderr, "cctx %p\n", (void *)cctx);
+  fflush(stderr);
+
   size_t res = ZSTD_compress2(cctx, dst_ptr, dst_len, src_ptr, src_len);
   fprintf(stderr, "just compressed\n");
   fflush(stderr);
@@ -66,8 +69,10 @@ static void compress(JNIEnv *env, ZSTD_CCtx *cctx, unsigned char *src_ptr,
     return;
   }
   if (res != dst_len) {
-    throw_exception(env, res, "Failed to fully compress the input.");
-    return;
+    char *msg = malloc(1000);
+    msg[0] = '\0';
+    sprintf(msg, "Failed to fully compress the input: %lu of %d", res, dst_len);
+    throw_exception(env, res, msg);
   }
 
   *bytes_read = src_len;
@@ -93,16 +98,19 @@ static void compress(JNIEnv *env, ZSTD_CCtx *cctx, unsigned char *src_ptr,
  * @param retry_count the number of decompression retries before we give up.
  */
 static void decompress(JNIEnv *env, ZSTD_DCtx *dctx, unsigned char *src_ptr,
-                      unsigned int src_len, unsigned char *dst_ptr,
-                      unsigned int dst_len, int *bytes_read, int *bytes_written,
-                      int retry_count) {
-  (void)retry_count; // TODO: implement retry
+                       unsigned int src_len, unsigned char *dst_ptr,
+                       unsigned int dst_len, int *bytes_read,
+                       int *bytes_written, int retry_count) {
+  (void)retry_count;  // TODO: implement retry
 
   fprintf(stderr, "about to decompress\n");
   fflush(stderr);
-  fprintf(stderr, "src %p len %d dst %p len %d\n", src_ptr, src_len, dst_ptr, dst_len);
+  fprintf(stderr, "src %p len %d dst %p len %d\n", src_ptr, src_len, dst_ptr,
+          dst_len);
   fflush(stderr);
-  
+  fprintf(stderr, "dctx %p\n", (void *)dctx);
+  fflush(stderr);
+
   size_t res = ZSTD_decompressDCtx(dctx, dst_ptr, dst_len, src_ptr, src_len);
   fprintf(stderr, "just decompressed\n");
   fflush(stderr);
@@ -113,7 +121,10 @@ static void decompress(JNIEnv *env, ZSTD_DCtx *dctx, unsigned char *src_ptr,
     return;
   }
   if (res != dst_len) {
-    throw_exception(env, res, "Failed to fully decompress the input.");
+    char *msg = malloc(1000);
+    msg[0] = '\0';
+    sprintf(msg, "Failed to fully decompress the input: %lu of %d", res, dst_len);
+    throw_exception(env, res, msg);
     return;
   }
 
@@ -142,11 +153,11 @@ JNIEXPORT void JNICALL Java_com_intel_qat_ZstdJNI_setup(
   // if (atomic_fetch_add(&active_sessions, 1) == 0) {
   // if (initialized == 0) {
   //   initialized = 1;
-    int status0 = QZSTD_startQatDevice();
-    if (status0 != QZSTD_OK) {
-      throw_exception(env, status0, "Initializing QAT HW failed.");
-      return;
-    }
+  int status0 = QZSTD_startQatDevice();
+  if (status0 != QZSTD_OK) {
+    throw_exception(env, status0, "Initializing QAT HW failed.");
+    return;
+  }
   // }
 
   // Create compression/decompression contexts
@@ -217,8 +228,8 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_ZstdJNI_compressByteArray(
   int bytes_read = 0;
   int bytes_written = 0;
 
-  compress(env, cctx, src_ptr + src_pos, src_len, dst_ptr + dst_pos,
-           dst_len, &bytes_read, &bytes_written, retry_count);
+  compress(env, cctx, src_ptr + src_pos, src_len, dst_ptr + dst_pos, dst_len,
+           &bytes_read, &bytes_written, retry_count);
 
   (*env)->ReleaseByteArrayElements(env, src_arr, (jbyte *)src_ptr, 0);
   (*env)->ReleaseByteArrayElements(env, dst_arr, (jbyte *)dst_ptr, 0);
@@ -280,8 +291,8 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_ZstdJNI_compressByteBuffer(
   int bytes_read = 0;
   int bytes_written = 0;
 
-  compress(env, cctx, src_ptr + src_pos, src_len, dst_ptr + dst_pos,
-           dst_len, &bytes_read, &bytes_written, retry_count);
+  compress(env, cctx, src_ptr + src_pos, src_len, dst_ptr + dst_pos, dst_len,
+           &bytes_read, &bytes_written, retry_count);
 
   (*env)->ReleaseByteArrayElements(env, src_arr, (jbyte *)src_ptr, 0);
   (*env)->ReleaseByteArrayElements(env, dst_arr, (jbyte *)dst_ptr, 0);

@@ -10,7 +10,7 @@ public class ZstdBackend extends ZipperBackend {
   long cctx;
   long dctx;
   long sequenceProducerState;
-  boolean ended = false;
+  private boolean isValid;
 
   public ZstdBackend(Algorithm algorithm, int level, Mode mode, int retryCount) {
     assert algorithm == Algorithm.ZSTD;
@@ -19,6 +19,7 @@ public class ZstdBackend extends ZipperBackend {
 
     this.retryCount = retryCount;
     ZstdJNI.setup(this, mode.ordinal(), algorithm.ordinal(), level);
+    this.isValid = true;
   }
 
   @Override
@@ -29,6 +30,7 @@ public class ZstdBackend extends ZipperBackend {
   @Override
   public int compress(
       byte[] src, int srcOffset, int srcLen, byte[] dst, int dstOffset, int dstLen) {
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
     if (src == null || dst == null || srcLen == 0 || dst.length == 0)
       throw new IllegalArgumentException(
           "Either source or destination array or both have size 0 or null value.");
@@ -44,6 +46,7 @@ public class ZstdBackend extends ZipperBackend {
 
   @Override
   public int compress(ByteBuffer src, ByteBuffer dst) {
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
     if ((src == null || dst == null)
         || (src.position() == src.limit() || dst.position() == dst.limit()))
       throw new IllegalArgumentException();
@@ -130,6 +133,7 @@ public class ZstdBackend extends ZipperBackend {
   @Override
   public int decompress(
       byte[] src, int srcOffset, int srcLen, byte[] dst, int dstOffset, int dstLen) {
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
     if (src == null || dst == null || srcLen == 0 || dst.length == 0)
       throw new IllegalArgumentException("Empty source or/and destination byte array(s).");
 
@@ -227,13 +231,17 @@ public class ZstdBackend extends ZipperBackend {
 
   @Override
   public void end() throws QatException {
-    if (ended) return;
-    ended = true;
+    if (!isValid) return;
+    isValid = false;
     ZstdJNI.teardown(cctx, dctx, sequenceProducerState);
+    cctx = 0;
+    dctx = 0;
+    sequenceProducerState = 0;
   }
 
   @Override
   public int maxCompressedSize(long len) {
+    if (!isValid) throw new IllegalStateException("QAT session has been closed.");
     return ZstdJNI.maxCompressedSize(len);
   }
 
