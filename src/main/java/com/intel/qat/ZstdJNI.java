@@ -17,12 +17,12 @@ class ZstdJNI {
     Native.loadLibrary();
   }
 
-  static native void setup(QatZipper qzip, int mode, int codec, int level);
+  static native void setup(ZstdBackend backend, int mode, int codec, int level);
 
-  static native int maxCompressedSize(long session, long sourceSize);
+  static native int maxCompressedSize(long sourceSize);
 
   static native int compressByteArray(
-      long session,
+      long cctx,
       byte[] src,
       int srcOff,
       int srcLen,
@@ -32,7 +32,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int decompressByteArray(
-      long session,
+      long dctx,
       byte[] src,
       int srcOff,
       int srcLen,
@@ -42,7 +42,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int compressByteBuffer(
-      long session,
+      long cctx,
       ByteBuffer srcBuffer,
       byte[] src,
       int srcOff,
@@ -53,7 +53,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int decompressByteBuffer(
-      long session,
+      long dctx,
       ByteBuffer srcBuffer,
       byte[] src,
       int srcOff,
@@ -64,7 +64,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int compressDirectByteBuffer(
-      long session,
+      long cctx,
       ByteBuffer src,
       int srcOff,
       int srcLen,
@@ -74,7 +74,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int decompressDirectByteBuffer(
-      long session,
+      long dctx,
       ByteBuffer src,
       int srcOff,
       int srcLen,
@@ -84,7 +84,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int compressDirectByteBufferSrc(
-      long session,
+      long cctx,
       ByteBuffer src,
       int srcOff,
       int srcLen,
@@ -94,7 +94,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int decompressDirectByteBufferSrc(
-      long session,
+      long dctx,
       ByteBuffer src,
       int srcOff,
       int srcLen,
@@ -104,7 +104,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int compressDirectByteBufferDst(
-      long session,
+      long cctx,
       ByteBuffer src,
       byte[] srcArr,
       int srcOff,
@@ -115,7 +115,7 @@ class ZstdJNI {
       int retryCount);
 
   static native int decompressDirectByteBufferDst(
-      long session,
+      long dctx,
       ByteBuffer src,
       byte[] srcArr,
       int srcOff,
@@ -125,5 +125,5 @@ class ZstdJNI {
       int dstLen,
       int retryCount);
 
-  static native int teardown(long session);
+  static native int teardown(long cctx, long dctx, long sequenceProducerState);
 }

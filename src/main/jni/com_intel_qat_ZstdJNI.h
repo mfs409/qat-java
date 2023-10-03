@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     com_intel_qat_ZstdJNI
  * Method:    setup
- * Signature: (Lcom/intel/qat/QatZipper;III)V
+ * Signature: (Lcom/intel/qat/ZstdBackend;III)V
  */
 JNIEXPORT void JNICALL Java_com_intel_qat_ZstdJNI_setup(JNIEnv *, jclass,
                                                         jobject, jint, jint,
@@ -19,11 +19,10 @@ JNIEXPORT void JNICALL Java_com_intel_qat_ZstdJNI_setup(JNIEnv *, jclass,
 /*
  * Class:     com_intel_qat_ZstdJNI
  * Method:    maxCompressedSize
- * Signature: (JJ)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_com_intel_qat_ZstdJNI_maxCompressedSize(JNIEnv *,
                                                                     jclass,
-                                                                    jlong,
                                                                     jlong);
 
 /*
@@ -115,10 +114,10 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_ZstdJNI_decompressDirectByteBufferDst(
 /*
  * Class:     com_intel_qat_ZstdJNI
  * Method:    teardown
- * Signature: (J)I
+ * Signature: (JJJ)I
  */
 JNIEXPORT jint JNICALL Java_com_intel_qat_ZstdJNI_teardown(JNIEnv *, jclass,
-                                                           jlong);
+                                                           jlong, jlong, jlong);
 
 #ifdef __cplusplus
 }
