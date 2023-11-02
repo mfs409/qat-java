@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.intel.qat</groupId>
     <artifactId>qat-java</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-bench</version>
     <packaging>jar</packaging>
 
     <name>qat-java</name>
@@ -288,7 +288,7 @@
         <dependency>
             <groupId>com.github.luben</groupId>
             <artifactId>zstd-jni</artifactId>
-            <version>1.5.5-7</version>
+            <version>1.5.5-seqprod</version>
         </dependency>
     </dependencies>
     <profiles>

@@ -46,8 +46,10 @@ public class BenchmarkDriver {
 
     Options opts =
         new OptionsBuilder()
-            .include(QatJavaBench.class.getSimpleName())
-            .include(JavaZipBench.class.getSimpleName())
+            // .include(QatJavaBench.class.getSimpleName())
+            // .include(JavaZipBench.class.getSimpleName())
+            .include(QatZstdBench.class.getSimpleName())
+            .include(JavaZstdBench.class.getSimpleName())
             .forks(1)
             .param("fileName", args[1])
             .jvmArgs("-Xms4g", "-Xmx4g")
